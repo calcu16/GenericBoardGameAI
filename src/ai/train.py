@@ -71,7 +71,8 @@ def train(game, player, num_games = 32, num_training_epochs = 5):
         for mp, sp, [ewp, pi, mi] in zip(mps, sps, scores):
           prob = mp[int(mi)]
           bwp = sp[int(pi)]
-          loss.append(- prob * (ewp - bwp) * (1 + (ewp - bwp)))
+          advantage = ewp - bwp
+          loss.append(-prob * advantage * (1 + 0.1 * advantage))
       gradients = tape.gradient(loss, player.trainable_variables)
       OPTIMIZER.apply_gradients(zip(gradients, player.trainable_variables))
 
