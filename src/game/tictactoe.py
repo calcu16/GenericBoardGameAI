@@ -42,9 +42,7 @@ class TicTacToe:
   def __str__(self): return str(self.moves)
 
 TEST_DATA = [
-  (TicTacToe([]), set(range(9)), 0.5),
-  (TicTacToe([0]), set([4]), 0.5),
-  (TicTacToe([4]), set([0, 2, 6, 8]), 0.5),
-  (TicTacToe([0, 4]), set([1, 2, 3, 5, 6, 7, 8]), 0.5),
   (TicTacToe([4, 6, 3, 5, 7, 1, 2, 8]), set([0]), 0.5),
+  (TicTacToe([4, 2, 8]), set([0]), 0.5),
+  (TicTacToe([4, 2, 8, 1]), set([0]), 1.0),
 ]

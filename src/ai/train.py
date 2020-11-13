@@ -1,10 +1,12 @@
 import tensorflow as tf
+from random import choices
 
 class Turn:
-  def __init__(self, inputs, player, move, scores):
+  def __init__(self, inputs, player, move, mp, scores):
     self.inputs = inputs
     self.player = player
     self.move = move
+    self.mp = mp[player]
     self.bwp = scores[player]
     self.ewp = None
   def updateWinner(self, winners):
@@ -29,12 +31,11 @@ class Game:
     self.nturn += 1
     if self.lturn is not None:
       self.lturn.updateScore(scores)
+    rmp = mp
     if tf.random.uniform(shape=[1])[0].numpy() < rng_prob:
-      mp = [1.0 for p in mp]
-    m = tf.random.categorical([mp], 1)[0, 0].numpy()
-    if m >= 9:
-      print(mp)
-    self.lturn = Turn(inp, self.pi, m, scores)
+      rmp = [1.0 for p in mp]
+    m = choices(range(9), weights=rmp)[0]
+    self.lturn = Turn(inp, self.pi, m, mp, scores)
     self.game.move(m)
     return self.lturn
   def updateWinner(self):
@@ -67,28 +68,31 @@ def train(game, player, rng_prob = 0.0, num_games = 256, num_training_epochs = 5
     print(pturns)
   print("Average game length: " + str(sum(g.nturn for g in dgs) / len(dgs)))
 
-  critic_loss_fn = tf.keras.losses.Huber(reduction=tf.keras.losses.Reduction.SUM)
+  # critic_loss_fn = tf.keras.losses.Huber(reduction=tf.keras.losses.Reduction.SUM)
+  def critic_loss_fn(mp, ewp, bwp):
+    return mp * tf.keras.losses.Huber(reduction=tf.keras.losses.Reduction.SUM)([max(ewp, 0)], [bwp])
   def actor_loss_fn(mp, mi, ewp, bwp):
     m = mp[int(mi)]
     loss = -m * (ewp - bwp)
-    if ewp - bwp < 0.1:
+    if ewp - bwp < 0.05:
       loss += (max(mp) - m) / 10.0
     return loss
   for i in range(num_training_epochs):
     for turns in pturns:
-      dataset = tf.data.Dataset.from_tensor_slices(([[turn.inputs] for turn in turns], [[turn.ewp, turn.bwp, turn.player, turn.move] for turn in turns])).batch(32)
+      dataset = tf.data.Dataset.from_tensor_slices(([[turn.inputs] for turn in turns], [[turn.mp, turn.ewp, turn.bwp, turn.player, turn.move] for turn in turns])).batch(32)
       for setup, scores in dataset:
         with tf.GradientTape() as tape:
           predictions = player(setup, training=True)
           if debug:
             print(predictions)
           mps, sps = predictions
-          critic_true, critic_pred, actor_losses = zip(*[(max(ewp, 0.0), sp[int(pi)], actor_loss_fn(mp, mi, ewp, bwp)) for mp, sp, [ewp, bwp, pi, mi] in zip(mps, sps, scores)])
+          critic_losses, actor_losses = zip(*[(critic_loss_fn(tmp, ewp, sp[int(pi)]), actor_loss_fn(mp, mi, ewp, bwp)) for mp, sp, [tmp, ewp, bwp, pi, mi] in zip(mps, sps, scores)])
           actor_loss = tf.math.reduce_sum(actor_losses)
-          if debug:
-            print("Critic true: " + str(critic_true))
-            print("Critic pred: " + str(critic_pred))
-          critic_loss = critic_loss_fn(critic_true, critic_pred)
+          #if debug:
+          #  print("Critic true: " + str(critic_true))
+          #  print("Critic pred: " + str(critic_pred))
+          # critic_loss = critic_loss_fn(critic_true, critic_pred)
+          critic_loss = tf.math.reduce_sum(critic_losses)
           loss = actor_loss + critic_loss
         if debug:
           print("Actor: " + str(actor_loss))
