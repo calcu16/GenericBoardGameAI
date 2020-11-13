@@ -37,7 +37,7 @@ class TicTacToe:
       ms[p].add(m)
       for win in WINS:
         if all(w in ms[p] for w in win):
-          return { p : 1.0, q : 1.0 }
+          return { p : 1.0, q : 0.0 }
     return { 0 : 0.5, 1 : 0.5 }
   def __str__(self): return str(self.moves)
 
