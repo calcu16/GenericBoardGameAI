@@ -12,7 +12,7 @@ def test(game, playerType, testData, args):
   bad = True
   while bad:
     train(game, player, rng_prob = 1.0 / (i + args.k))
-    # player.save_weights('./checkpoints/tictactoe')
+    player.save_weights('./checkpoints/tictactoe')
     print("-- Trained " + str(i) + " --")
     i += 1
     loss = 0
