@@ -21,8 +21,10 @@ class TicTacToe:
       inp[p][m] = 1
     return inp
   def activePlayer(self):
-    return len(self.moves) % 2 if len(self.moves) < 9 and len(self.winner()) == 2 else None
+    return len(self.moves) % 2 if len(self.moves) < 9 and self.winner()[0] == 0.5 else None
   def move(self, m):
+    if m >= 9:
+      raise Exception("Bad move: %d\n" % m)
     self.moves.append(m)
   def winner(self):
     global WINS
@@ -31,14 +33,18 @@ class TicTacToe:
       p = i % 2
       q = 1 - p
       if m in ms[q] or m in ms[p]:
-        return [q] # illegal move
+        return { p : -1.0, q : 1.0 } # illegal move
       ms[p].add(m)
       for win in WINS:
         if all(w in ms[p] for w in win):
-          return [p]
-    return [0, 1]
+          return { p : 1.0, q : 1.0 }
+    return { 0 : 0.5, 1 : 0.5 }
   def __str__(self): return str(self.moves)
 
 TEST_DATA = [
+  (TicTacToe([]), set(range(9)), 0.5),
+  (TicTacToe([0]), set([4]), 0.5),
+  (TicTacToe([4]), set([0, 2, 6, 8]), 0.5),
+  (TicTacToe([0, 4]), set([1, 2, 3, 5, 6, 7, 8]), 0.5),
   (TicTacToe([4, 6, 3, 5, 7, 1, 2, 8]), set([0]), 0.5),
 ]

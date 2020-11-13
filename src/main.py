@@ -8,22 +8,18 @@ def test(game, playerType, testData):
   for turn, moves, score in testData:
     turn = turn.clone()
     print(player.predict([game.inputs()]))
-  loss = 1.0
   i = 0
-  while loss >= 0.1:
-    train(game, player)
+  for x in range(1000):
+    train(game, player, rng_prob = 1 / (x + 1))
     player.save_weights('./checkpoints/tictactoe')
     print("-- Trained " + str(i) + " --")
     i += 1
     loss = 0
     for turn, moves, score in testData:
       turn = turn.clone()
-      mps, scores = player.predict([game.inputs()])
-      loss = 1 - sum(mps[0][move] for move in moves)
-      print(turn)
-      print(mps[0])
-      print(scores[0])
-      print(loss)
+      mps, scores = player.predict([turn.inputs()])
+      print(turn.inputs())
+      print(str(turn) + ":" + ", ".join("%0.2f" % mp for mp in mps[0]) + ":" + ", ".join("%0.2f" % s for s in scores[0]))
 
 if __name__ == "__main__":
   test(TicTacToe(), Player, TEST_DATA)
