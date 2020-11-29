@@ -1,10 +1,10 @@
 from ai.player import Player
 from ai.train import train
-from game.tictactoe import TicTacToe, TEST_DATA
+from game.tictactoe import TicTacToe
 from sys import argv
 from argparse import ArgumentParser
 
-def test(game, playerType, testData, args):
+def test(game, playerType, args):
   player = playerType(game)
   if args.load:
     player.load_weights('./checkpoints/tictactoe')
@@ -17,7 +17,7 @@ def test(game, playerType, testData, args):
     i += 1
     loss = 0
     bad = False
-    for turn, moves, score in testData:
+    for turn, moves, score in game.test_data:
       turn = turn.clone()
       mps, scores = next(zip(*player.predict([turn.inputs()])))
       wprob = sum(mps[move] for move in moves)
@@ -31,4 +31,4 @@ if __name__ == "__main__":
   parser.add_argument('--load', action="store_true")
   parser.add_argument('--k', type=int, default=1)
   args = parser.parse_args()
-  test(TicTacToe(), Player, TEST_DATA, args)
+  test(TicTacToe(), Player, args)

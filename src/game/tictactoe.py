@@ -6,12 +6,16 @@ def _wins():
   yield tuple(2*(j+1) for j in range(3))
 WINS = list(_wins())
 
+_TEST_DATA = []
+
 class TicTacToe:
   def __init__(self, moves = []):
-    self.input_shape = (9, 2)
+    global _TEST_DATA
+    self.num_inputs = 9 * 2
     self.num_actions = 9
     self.num_players = 2
     self.moves = moves.copy()
+    self.test_data = _TEST_DATA
   def clone(self):
     return TicTacToe(self.moves)
   def inputs(self):
@@ -19,7 +23,7 @@ class TicTacToe:
     for i, m in enumerate(self.moves):
       p = i % 2
       inp[p][m] = 1
-    return inp
+    return [x for xs in inp for x in xs]
   def activePlayer(self):
     return len(self.moves) % 2 if len(self.moves) < 9 and self.winner()[0] == 0.5 else None
   def move(self, m):
@@ -41,8 +45,9 @@ class TicTacToe:
     return { 0 : 0.5, 1 : 0.5 }
   def __str__(self): return str(self.moves)
 
-TEST_DATA = [
+_TEST_DATA.extend([
   (TicTacToe([4, 6, 3, 5, 7, 1, 2, 8]), set([0]), 0.5),
   (TicTacToe([4, 2, 8]), set([0]), 0.5),
   (TicTacToe([4, 2, 8, 1]), set([0]), 1.0),
-]
+])
+
