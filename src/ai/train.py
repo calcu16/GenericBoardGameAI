@@ -34,7 +34,7 @@ class Game:
     rmp = mp
     if tf.random.uniform(shape=[1])[0].numpy() < rng_prob:
       rmp = [1.0 for p in mp]
-    m = choices(range(9), weights=rmp)[0]
+    m = choices(range(len(rmp)), weights=rmp)[0]
     self.lturn = Turn(inp, self.pi, m, mp, scores)
     self.game.move(m)
     return self.lturn
